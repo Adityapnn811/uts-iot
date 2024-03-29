@@ -2,20 +2,16 @@
 import mqtt from "mqtt";
 import { useEffect, useState } from "react";
 import { mqttConfig, mqttUri, sendPaymentTopic } from "@/constant";
-import { addTransactionHistory } from "./actions";
 
-export default function Home() {
+export default function History() {
   const [mqttMessage, setMqttMessage] = useState<string>("No message yet");
 
   // Connect to mqtt broker
   useEffect(() => {
     const client = mqtt.connect(mqttUri, mqttConfig);
     client.subscribe(sendPaymentTopic);
-    client.on("message", async (topic, message) => {
-      if (topic === sendPaymentTopic) {
-        setMqttMessage(message.toString());
-        await addTransactionHistory();
-      }
+    client.on("message", (topic, message) => {
+      setMqttMessage(message.toString());
     });
 
     return () => {
@@ -28,7 +24,7 @@ export default function Home() {
 
   return (
     <main className="flex flex-col items-center justify-between p-24">
-      <h1 className="font-bold text-xl mb-4">Message from esp:</h1>
+      <h1 className="font-bold text-xl mb-4">History</h1>
       <p>{mqttMessage}</p>
     </main>
   );

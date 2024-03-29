@@ -16,7 +16,22 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <nav className="flex items-center justify-between p-4 bg-gray-800 text-white">
+          <div className="flex flex-1 flex-row items-center align-middle space-x-4">
+            <a href="/" className="hover:underline">
+              Home
+            </a>
+            <a href="/history" className="hover:underline">
+              History
+            </a>
+            <a href="/top-up" className="hover:underline">
+              Top Up
+            </a>
+          </div>
+        </nav>
+        {children}
+      </body>
     </html>
   );
 }

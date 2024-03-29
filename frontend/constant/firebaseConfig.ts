@@ -1,6 +1,9 @@
+"use server";
+import * as firebase from "firebase-admin";
+import { getApp, getApps } from "firebase-admin/app";
 import { env } from "process";
 
-export const firebaseConfig = {
+const firebaseConfig = {
   apiKey: "AIzaSyApbieqgY8TVzY3g4soCsPOdvQbLx2j8Ww",
 
   authDomain: "uts-iot-f3d60.firebaseapp.com",
@@ -14,7 +17,7 @@ export const firebaseConfig = {
   appId: "1:527664054687:web:489d5f2c2ad71bce81bdaa",
 };
 
-export const serviceAccountConfig = {
+const serviceAccountConfig = {
   type: env.TYPE,
   project_id: env.PROJECT_ID,
   private_key_id: env.PRIVATE_KEY_ID,
@@ -27,3 +30,14 @@ export const serviceAccountConfig = {
   client_x509_cert_url: env.CLIENT_CERT_URL,
   universe_domain: env.UNIVERSE_DOMAIN,
 };
+
+export async function initializeAdmin() {
+  if (getApps().length > 0) return getApp();
+  return firebase.initializeApp({
+    credential: firebase.credential.cert({
+      projectId: serviceAccountConfig.project_id,
+      clientEmail: serviceAccountConfig.client_email,
+      privateKey: serviceAccountConfig.private_key,
+    }),
+  });
+}

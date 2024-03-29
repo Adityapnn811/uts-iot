@@ -2,20 +2,16 @@
 import mqtt from "mqtt";
 import { useEffect, useState } from "react";
 import { mqttConfig, mqttUri, sendPaymentTopic } from "@/constant";
-import { addTransactionHistory } from "./actions";
 
-export default function Home() {
-  const [mqttMessage, setMqttMessage] = useState<string>("No message yet");
+export default function TopUp() {
+  const [mqttMessage, setMqttMessage] = useState<string>("");
 
   // Connect to mqtt broker
   useEffect(() => {
     const client = mqtt.connect(mqttUri, mqttConfig);
     client.subscribe(sendPaymentTopic);
-    client.on("message", async (topic, message) => {
-      if (topic === sendPaymentTopic) {
-        setMqttMessage(message.toString());
-        await addTransactionHistory();
-      }
+    client.on("message", (topic, message) => {
+      setMqttMessage(message.toString());
     });
 
     return () => {
@@ -28,8 +24,10 @@ export default function Home() {
 
   return (
     <main className="flex flex-col items-center justify-between p-24">
-      <h1 className="font-bold text-xl mb-4">Message from esp:</h1>
-      <p>{mqttMessage}</p>
+      <h1 className="font-bold text-xl mb-4">Top Up</h1>
+      {/* Create button to top up */}
+      <button className="bg-gray-800 text-white p-4 rounded-xl">Top Up</button>
+      <p className="mt-2">{mqttMessage}</p>
     </main>
   );
 }

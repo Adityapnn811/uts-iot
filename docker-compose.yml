@@ -1,0 +1,8 @@
+services:
+  mqtt-broker:
+    image: mqtt-broker:v1
+    build:
+      context: .
+      dockerfile: Dockerfile.mqtt
+    container_name: mqtt-broker
+    network_mode: host

@@ -1,0 +1,12 @@
+FROM eclipse-mosquitto
+
+COPY ./mqtt-broker/mosquitto.conf /mosquitto/config/mosquitto.conf
+COPY ./mqtt-broker/mosquitto.conf /etc/mosquitto/mosquitto.conf
+COPY ./mqtt-broker/passwd /etc/mosquitto/passwd
+
+RUN chown mosquitto: /etc/mosquitto/passwd
+RUN chmod 0700 /etc/mosquitto/passwd
+
+EXPOSE 1883
+
+CMD ["mosquitto", "-p", "1883", "-c", "/mosquitto/config/mosquitto.conf" ]

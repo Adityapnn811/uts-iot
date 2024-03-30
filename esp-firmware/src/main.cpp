@@ -33,6 +33,16 @@ const char* topUpCommand = "Top Up";
 WiFiClient espClient;
 PubSubClient client(espClient);
 
+// Functions declaration
+void connectWifi();
+void connectMQTTBroker();
+void callback(char* topic, byte* payload, unsigned int length);
+void blinkLEDXSecs(unsigned int x);
+void turnLEDXSecs(unsigned int x);
+bool compareStrings(const char* s1, const char* s2, int length);
+void handleSuccessfulPayment();
+void handleFailedPayment();
+
 // SETUP HELPER
 void connectWifi(){
 // connecting to a WiFi network
@@ -65,11 +75,13 @@ void callback(char* topic, byte* payload, unsigned int length) {
     strcat(sendPayload, String(balance).c_str());
 
     client.publish(confirmTopUpTopic, sendPayload);
+    turnLEDXSecs(2);
     return;
   } else if (compareStrings(topic, topUpTopic, 5)) {
     // Default sent payload
     strcpy(sendPayload, "TOP UP GAGAL!");
     client.publish(confirmTopUpTopic, sendPayload);
+    blinkLEDXSecs(2);
     return;
   }
 

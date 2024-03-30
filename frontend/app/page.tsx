@@ -24,12 +24,14 @@ export default function Home() {
         client.end();
       }
     };
-  });
+  }, []);
 
   return (
     <main className="flex flex-col items-center justify-between p-24">
-      <h1 className="font-bold text-xl mb-4">Message from esp:</h1>
-      <p>{mqttMessage}</p>
+      <h1 className="font-bold text-2xl mb-4">Message from node</h1>
+      <p className="mt-4 min-w-full bg-gray-100 py-2 px-4 rounded-xl text-center">
+        {mqttMessage}
+      </p>
     </main>
   );
 }

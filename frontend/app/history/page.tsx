@@ -1,48 +1,48 @@
 "use client";
-import mqtt from "mqtt";
 import { useEffect, useState } from "react";
-import { mqttConfig, mqttUri, sendPaymentTopic } from "@/constant";
-import { DocumentData } from "firebase-admin/firestore";
 
 export default function History() {
-  const [mqttMessage, setMqttMessage] = useState<string>("No message yet");
   const [history, setHistory] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetch("/history/api");
+      const response = await fetch("/history/api", {
+        next: { revalidate: 5 },
+      });
       const data = await response.json();
+      data.sort(
+        (a: any, b: any) =>
+          new Date(b.time).getTime() -
+          new Date(a.time).getTime()
+      );
       setHistory(data);
     };
 
     fetchData();
-  });
-
-  //   Connect to mqtt broker
-  useEffect(() => {
-    const client = mqtt.connect(mqttUri, mqttConfig);
-    client.subscribe(sendPaymentTopic);
-    client.on("message", (topic, message) => {
-      setMqttMessage(message.toString());
-    });
-
-    return () => {
-      if (client) {
-        client.unsubscribe(sendPaymentTopic);
-        client.end();
-      }
-    };
-  });
+  }, []);
 
   return (
     <main className="flex flex-col items-center justify-between p-24">
-      <h1 className="font-bold text-xl mb-4">History</h1>
-      <ul>
-        {history?.map((data: any) => (
-          <li key={data.id}>{data.time}</li>
-        ))}
+      <h1 className="font-bold text-2xl mb-4">Transaction History</h1>
+      <ul className="flex flex-col w-1/2 gap-2">
+        {history?.map((data: any) => {
+          const date = new Date(data.time);
+          return (
+            <li
+              key={data.id}
+              className="flex flex-row justify-between font-semibold px-4 py-2 rounded-xl bg-gray-300"
+            >
+              <p>
+                {date.getDay()}-{date.getMonth()}-{date.getFullYear()} at{" "}
+                {date.getHours()}:{date.getMinutes()}
+              </p>
+              <p className={`${data.isPayment ? 'text-red-600' : 'text-green-700'}`}>
+                {data.isPayment ? "Payment" : "Top Up"} Rp20.000
+              </p>
+            </li>
+          );
+        })}
       </ul>
-      <p>{mqttMessage}</p>
     </main>
   );
 }

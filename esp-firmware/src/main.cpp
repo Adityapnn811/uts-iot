@@ -9,7 +9,7 @@ int prevLEDState = LOW;
 int prevButtonState = LOW;
 int currentButtonState = LOW;
 
-int initialBalance = 149000;
+int balance = 149000;
 int price = 20000;
 
 unsigned long lastDebounceTime = 0;
@@ -26,6 +26,9 @@ const char *mqtt_password = "mqttPassword";
 const int mqtt_port = 1883;
 
 const char* sendPaymentTopic = "sendPayment";
+const char* topUpTopic = "topUp";
+const char* confirmTopUpTopic = "confirmTopUp";
+const char* topUpCommand = "Top Up";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -41,9 +44,44 @@ void connectWifi(){
   Serial.println("Connected to the WiFi network");
 }
 
+bool compareStrings(const char* s1, const char* s2, int length) {
+  for (int i = 0; i < length; i++) {
+    if (s1[i] != s2[i]) return false;
+  }
+  return true;
+}
+
+// On message receive handler
+void callback(char* topic, byte* payload, unsigned int length) {
+  // Preparing sent payload
+  char sendPayload[100];
+  // Cast the payload into char*
+  char payloadChar[length];
+  memcpy(payloadChar, payload, 6);
+
+  if (compareStrings(topic, topUpTopic, 5) && compareStrings(payloadChar, topUpCommand, 6)) {
+    balance += 20000;
+    strcpy(sendPayload, "TOP UP BERHASIL, SALDO SAAT INI Rp");
+    strcat(sendPayload, String(balance).c_str());
+
+    client.publish(confirmTopUpTopic, sendPayload);
+    return;
+  } else if (compareStrings(topic, topUpTopic, 5)) {
+    // Default sent payload
+    strcpy(sendPayload, "TOP UP GAGAL!");
+    client.publish(confirmTopUpTopic, sendPayload);
+    return;
+  }
+
+  strcpy(sendPayload, "PAYLOAD TIDAK DIKETAHUI");
+  client.publish(confirmTopUpTopic, sendPayload);
+  return;
+}
+
 void connectMQTTBroker(){
 //connecting to a mqtt broker
  client.setServer(mqtt_broker, mqtt_port);
+ client.setCallback(callback);
  while (!client.connected()) {
      String client_id = "esp32-client-";
      client_id += String(WiFi.macAddress());
@@ -57,7 +95,25 @@ void connectMQTTBroker(){
      }
  }
   // publish and subscribe
- client.publish(sendPaymentTopic, "node connected");
+ client.subscribe(topUpTopic);
+}
+
+// LED HELPER
+void blinkLEDXSecs(unsigned int x) {
+  // Blink LED for X seconds
+  for (int i = 0; i < x; i++) {
+    digitalWrite(LED, HIGH);
+    delay(500);
+    digitalWrite(LED, LOW);
+    delay(500);
+  }
+}
+
+void turnLEDXSecs(unsigned int x) {
+  // Turn LED for X seconds
+  digitalWrite(LED, HIGH);
+  delay(x * 1000);
+  digitalWrite(LED, LOW);
 }
 
 void setup() {
@@ -69,28 +125,19 @@ void setup() {
 }
 
 void handleSuccessfulPayment() {
-  initialBalance -= price;
+  balance -= price;
   char payload[100] = "TRANSAKSI BERHASIL, SISA SALDO Rp.";
-  strcat(payload, String(initialBalance).c_str());
+  strcat(payload, String(balance).c_str());
   client.publish(sendPaymentTopic, payload);
 
-  // Turn LED for 5 seconds
-  digitalWrite(LED, HIGH);
-  delay(5000);
-  digitalWrite(LED, LOW);
+  turnLEDXSecs(5);
 }
 
 void handleFailedPayment() {
   char payload[100] = "SALDO TIDAK MENCUKUPI";
   client.publish(sendPaymentTopic, payload);
 
-  // Blink LED for 5 seconds
-  for (int i = 0; i < 5; i++) {
-    digitalWrite(LED, HIGH);
-    delay(500);
-    digitalWrite(LED, LOW);
-    delay(500);
-  }
+  blinkLEDXSecs(5);
 }
 
 void loop() {
@@ -99,10 +146,12 @@ void loop() {
 
   if ((millis() - lastDebounceTime > debounceDelay) && !buttonReading) {
     lastDebounceTime = millis();
-    if (initialBalance >= price) {
+    if (balance >= price) {
       handleSuccessfulPayment();
     } else {
       handleFailedPayment();
     }
   }
+
+  client.loop();
 }

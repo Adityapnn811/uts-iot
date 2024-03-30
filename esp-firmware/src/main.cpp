@@ -134,6 +134,8 @@ void setup() {
   pinMode(BUTTON_IN, INPUT_PULLUP);
   connectWifi();
   connectMQTTBroker();
+  Serial.print("Saldo awal: Rp");
+  Serial.println(balance);
 }
 
 void handleSuccessfulPayment() {

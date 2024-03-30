@@ -1,6 +1,7 @@
 "use server";
 import * as firebase from "firebase-admin";
 import { getApp, getApps } from "firebase-admin/app";
+import { initializeApp } from "firebase/app";
 import { env } from "process";
 
 const firebaseConfig = {
@@ -40,4 +41,8 @@ export async function initializeAdmin() {
       privateKey: serviceAccountConfig.private_key,
     }),
   });
+}
+
+export async function initializeFirebase() {
+  return initializeApp(firebaseConfig);
 }

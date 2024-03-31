@@ -33,7 +33,7 @@ export default function History() {
               className="flex flex-row justify-between font-semibold px-4 py-2 rounded-xl bg-gray-300"
             >
               <p>
-                {date.getDay()}-{date.getMonth()}-{date.getFullYear()} at{" "}
+                {date.getDate()}-{date.getMonth()}-{date.getFullYear()} at{" "}
                 {date.getHours()}:{date.getMinutes()}
               </p>
               <p className={`${data.isPayment ? 'text-red-600' : 'text-green-700'}`}>

@@ -6,3 +6,11 @@ services:
       dockerfile: Dockerfile.mqtt
     container_name: mqtt-broker
     network_mode: host
+  
+  mqtt-frontend:
+    image: mqtt-frontend:v1
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    container_name: mqtt-frontend
+    network_mode: host
